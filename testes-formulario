@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Laboratório de Testes - Step by Step e Pairwise</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    h2 {
+      margin-top: 40px;
+    }
+    section {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin-top: 5px;
+      padding: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    .ok {
+      color: green;
+      font-weight: bold;
+    }
+    .fail {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Laboratório de Testes de Software</h1>
+
+<section>
+  <h2>1. Contexto do Teste</h2>
+  <label>Funcionalidade a ser testada</label>
+  <input type="text" id="feature" placeholder="Ex: Login do sistema">
+</section>
+
+<section>
+  <h2>2. Step by Step</h2>
+  <label>Passo</label>
+  <input type="text" id="step">
+
+  <label>Ação</label>
+  <input type="text" id="action">
+
+  <label>Resultado esperado</label>
+  <input type="text" id="expected">
+
+  <button onclick="addStep()">Adicionar passo</button>
+
+  <table id="stepsTable">
+    <thead>
+      <tr>
+        <th>Passo</th>
+        <th>Ação</th>
+        <th>Resultado esperado</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section>
+  <h2>3. Variáveis para Pairwise</h2>
+  <label>Variável (ex: Navegador)</label>
+  <input type="text" id="varName">
+
+  <label>Valores (separados por vírgula)</label>
+  <input type="text" id="varValues" placeholder="Chrome, Firefox, Edge">
+
+  <button onclick="addVariable()">Adicionar variável</button>
+
+  <table id="varsTable">
+    <thead>
+      <tr>
+        <th>Variável</th>
+        <th>Valores</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button onclick="generatePairwise()">Gerar cenários de teste</button>
+</section>
+
+<section>
+  <h2>4. Cenários Gerados (Pairwise Simplificado)</h2>
+  <table id="scenariosTable">
+    <thead>
+      <tr id="scenarioHeader"></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Execução dos Testes</h2>
+  <p>Marque o resultado de cada cenário após executar o teste.</p>
+</section>
+
+<script>
+  const steps = [];
+  const variables = [];
+
+  function addStep() {
+    const step = document.getElementById("step").value;
+    const action = document.getElementById("action").value;
+    const expected = document.getElementById("expected").value;
+
+    if (!step || !action || !expected) return;
+
+    steps.push({ step, action, expected });
+
+    const tbody = document.querySelector("#stepsTable tbody");
+    const row = tbody.insertRow();
+    row.insertCell().innerText = step;
+    row.insertCell().innerText = action;
+    row.insertCell().innerText = expected;
+
+    document.getElementById("step").value = "";
+    document.getElementById("action").value = "";
+    document.getElementById("expected").value = "";
+  }
+
+  function addVariable() {
+    const name = document.getElementById("varName").value;
+    const values = document.getElementById("varValues").value
+      .split(",")
+      .map(v => v.trim())
+      .filter(v => v);
+
+    if (!name || values.length === 0) return;
+
+    variables.push({ name, values });
+
+    const tbody = document.querySelector("#varsTable tbody");
+    const row = tbody.insertRow();
+    row.insertCell().innerText = name;
+    row.insertCell().innerText = values.join(", ");
+
+    document.getElementById("varName").value = "";
+    document.getElementById("varValues").value = "";
+  }
+
+  function generatePairwise() {
+    const tableBody = document.querySelector("#scenariosTable tbody");
+    const headerRow = document.getElementById("scenarioHeader");
+    tableBody.innerHTML = "";
+    headerRow.innerHTML = "";
+
+    if (variables.length === 0) return;
+
+    variables.forEach(v => {
+      const th = document.createElement("th");
+      th.innerText = v.name;
+      headerRow.appendChild(th);
+    });
+
+    const thResult = document.createElement("th");
+    thResult.innerText = "Resultado";
+    headerRow.appendChild(thResult);
+
+    const maxRows = Math.max(...variables.map(v => v.values.length));
+
+    for (let i = 0; i < maxRows; i++) {
+      const row = tableBody.insertRow();
+
+      variables.forEach(v => {
+        const cell = row.insertCell();
+        cell.innerText = v.values[i % v.values.length];
+      });
+
+      const resultCell = row.insertCell();
+      const btnOk = document.createElement("button");
+      btnOk.innerText = "OK";
+      btnOk.onclick = () => resultCell.innerHTML = "<span class='ok'>OK</span>";
+
+      const btnFail = document.createElement("button");
+      btnFail.innerText = "Falha";
+      btnFail.onclick = () => resultCell.innerHTML = "<span class='fail'>Falha</span>";
+
+      resultCell.appendChild(btnOk);
+      resultCell.appendChild(btnFail);
+    }
+  }
+</script>
+
+</body>
+</html>
